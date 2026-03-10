@@ -1,0 +1,278 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>BIP39 - Encoder & Embaralhador</title>
+    <style>
+        :root {
+            --bg: #121212; --surface: #1e1e1e; --primary: #f7931a; 
+            --text: #e0e0e0; --border: #333; --success: #00c853; --danger: #ff4444;
+        }
+        body { font-family: 'Courier New', Courier, monospace; background-color: var(--bg); color: var(--text); max-width: 900px; margin: 0 auto; padding: 20px; }
+        h1, h2 { color: var(--primary); border-bottom: 1px solid var(--border); padding-bottom: 5px; }
+        .card { background-color: var(--surface); padding: 20px; border-radius: 8px; border: 1px solid var(--border); margin-bottom: 20px; }
+        textarea, input { width: 100%; background-color: #000; color: #0f0; border: 1px solid var(--border); padding: 10px; border-radius: 4px; font-family: inherit; box-sizing: border-box; margin-bottom: 10px; word-wrap: break-word; }
+        button { background-color: var(--primary); color: #121212; border: none; padding: 10px 20px; font-size: 16px; font-weight: bold; border-radius: 4px; cursor: pointer; transition: 0.2s; margin-right: 10px; margin-bottom: 10px; }
+        button:hover { opacity: 0.8; }
+        .code-box { background: #2a2a2a; padding: 10px; border-left: 4px solid var(--primary); margin: 5px 0 15px 0; word-break: break-all; font-size: 0.9em; }
+        .label { font-weight: bold; color: #aaa; font-size: 0.9em; }
+        .recovery-card { border-color: var(--danger); }
+        .recovery-card h2 { color: var(--danger); }
+        .btn-danger { background-color: var(--danger); color: white; }
+    </style>
+</head>
+<body>
+
+    <h1>BIP39 Encoder & Cipher Puzzle</h1>
+    
+    <div class="card">
+        <h2>1. Insira sua Carteira Original</h2>
+        <textarea id="inputWords" rows="3" placeholder="Cole suas 12 ou 24 palavras originais aqui..."></textarea>
+        <button onclick="processOriginal()">Analisar & Codificar</button>
+        
+        <div id="originalOutputs" style="display:none;">
+            <div class="label">Representação em Binário:</div>
+            <div class="code-box" id="origBin">-</div>
+            <div class="label">Representação Numérica:</div>
+            <div class="code-box" id="origNum">-</div>
+        </div>
+    </div>
+
+    <div class="card">
+        <h2>2. Embaralhar & Gerar Chave</h2>
+        <button onclick="scramble()">Gerar Puzzle (Embaralhar)</button>
+        
+        <div id="scrambleOutputs" style="display:none;">
+            <div class="label">Carteira Embaralhada (Palavras):</div>
+            <div class="code-box" style="border-left-color: var(--success);" id="scrambledWords">-</div>
+            <div class="label">Carteira Embaralhada (Binário):</div>
+            <div class="code-box" style="border-left-color: var(--success);" id="scrambledBin">-</div>
+            <div class="label">Carteira Embaralhada (Numérico):</div>
+            <div class="code-box" style="border-left-color: var(--success);" id="scrambledNum">-</div>
+
+            <hr style="border: 1px solid var(--border); margin: 20px 0;">
+            
+            <h3 style="color: var(--success);">Chave de Desembaralhamento (Guarde!)</h3>
+            <p style="font-size: 0.9em;">Você precisará de QUALQUER UM dos formatos abaixo para restaurar a ordem.</p>
+            <div class="label">Chave em 3 Palavras:</div>
+            <div class="code-box" id="keyWords">-</div>
+            <div class="label">Chave Numérica:</div>
+            <div class="code-box" id="keyNum">-</div>
+            <div class="label">Chave Binária:</div>
+            <div class="code-box" id="keyBin">-</div>
+        </div>
+    </div>
+
+    <div class="card recovery-card">
+        <h2>3. Recuperar Carteira Original</h2>
+        <p style="font-size: 0.9em;">Cole os dados embaralhados (pode ser palavras, número gigante ou binário gigante) e a chave.</p>
+        
+        <div class="label">Dados da Carteira (Embaralhada):</div>
+        <textarea id="recoverData" rows="3" placeholder="Insira as palavras, código numérico ou binário..."></textarea>
+        
+        <div class="label">Chave de Recuperação:</div>
+        <input type="text" id="recoverKey" placeholder="Insira as 3 palavras, código numérico ou binário da chave...">
+        
+        <button class="btn-danger" onclick="descramble()">Restaurar Carteira</button>
+
+        <div id="recoverOutputs" style="display:none; margin-top: 15px;">
+            <div class="label">Carteira Original Restaurada:</div>
+            <div class="code-box" style="border-left-color: var(--danger); font-size: 1.2em; color: #0f0;" id="restoredWords">-</div>
+        </div>
+    </div>
+
+<script>
+    // Lista BIP39 em string (para economizar espaço)
+    const bip39_string = "abandon ability able about above absent absorb abstract absurd abuse access accident account accuse achieve acid acoustic acquire across act action actor actress actual adapt add addict address adjust admit adult advance advice aerobic affair afford afraid again age agent agree ahead aim air airport aisle alarm album alcohol alert alien all alley allow almost alone alpha already also alter always amateur amazing among amount amused analyst anchor ancient anger angle angry animal ankle announce annual another answer antenna antique anxiety any apart apology appear apple approve april arch arctic area arena argue arm armed armor army around arrange arrest arrive arrow art artefact artist artwork ask aspect assault asset assist assume asthma athlete atom attack attend attitude attract auction audit august aunt author auto autumn average avocado avoid awake aware away awesome awful awkward axis baby bachelor bacon badge bag balance balcony ball bamboo banana banner bar barely bargain barrel base basic basket battle beach bean beauty because become beef before begin behave behind believe below belt bench benefit best betray better between beyond bicycle bid bike bind biology bird birth bitter black blade blame blanket blast bleak bless blind blood blossom blouse blue blur blush board boat body boil bomb bone bonus book boost border boring borrow boss bottom bounce box boy bracket brain brand brass brave bread breeze brick bridge brief bright bring brisk broccoli broken bronze broom brother brown brush bubble buddy budget buffalo build bulb bulk bullet bundle bunker burden burger burst bus business busy butter buyer buzz cabbage cabin cable cactus cage cake call calm camera camp can canal cancel candy cannon canoe canvas canyon capable capital captain car carbon card cargo carpet carry cart case cash casino castle casual cat catalog catch category cattle caught cause caution cave ceiling celery cement census century cereal certain chair chalk champion change chaos chapter charge chase chat cheap check cheese chef cherry chest chicken chief child chimney choice choose chronic chuckle chunk churn cigar cinnamon circle citizen city civil claim clap clarify claw clay clean clerk clever click client cliff climb clinic clip clock clog close cloth cloud clown club clump cluster clutch coach coast coconut code coffee coil coin collect color column combine come comfort comic common company concert conduct confirm congress connect consider control convince cook cool copper copy coral core corn correct cost cotton couch country couple course cousin cover coyote crack cradle craft cram crane crash crater crawl crazy cream credit creek crew cricket crime crisp critic crop cross crouch crowd crucial cruel cruise crumble crunch crush cry crystal cube culture cup cupboard curious current curtain curve cushion custom cute cycle dad damage damp dance danger daring dash daughter dawn day deal debate debris decade december decide decline decorate decrease deer defense define defy degree delay deliver demand demise denial dentist deny depart depend deposit depth deputy derive describe desert design desk despair destroy detail detect develop device devote diagram dial diamond diary dice diesel diet differ digital dignity dilemma dinner dinosaur direct dirt disagree discover disease dish dismiss disorder display distance divert divide divorce dizzy doctor document dog doll dolphin domain donate donkey donor door dose double dove draft dragon drama drastic draw dream dress drift drill drink drip drive drop drum dry duck dumb dune during dust dutch duty dwarf dynamic eager eagle early earn earth easily east easy echo ecology economy edge edit educate effort egg eight either elbow elder electric elegant element elephant elevator elite else embark embody embrace emerge emotion employ empower empty enable enact end endless endorse enemy energy enforce engage engine enhance enjoy enlist enough enrich enroll ensure enter entire entry envelope episode equal equip era erase erode erosion error erupt escape essay essence estate eternal ethics evidence evil evoke evolve exact example excess exchange excite exclude excuse execute exercise exhaust exhibit exile exist exit exotic expand expect expire explain expose express extend extra eye eyebrow fabric face faculty fade faint faith fall false fame family famous fan fancy fantasy farm fashion fat fatal father fatigue fault favorite feature february federal fee feed feel female fence festival fetch fever few fiber fiction field figure file film filter final find fine finger finish fire firm first fiscal fish fit fitness fix flag flame flash flat flavor flee flight flip float flock floor flower fluid flush fly foam focus fog foil fold follow food foot force forest forget fork fortune forum forward fossil foster found fox fragile frame frequent fresh friend fringe frog front frost frown frozen fruit fuel fun funny furnace fury future gadget gain galaxy gallery game gap garage garbage garden garlic garment gas gasp gate gather gauge gaze general genius genre gentle genuine gesture ghost giant gift giggle ginger giraffe girl give glad glance glare glass glide glimpse globe gloom glory glove glow glue goat goddess gold good goose gorilla gospel gossip govern gown grab grace grain grant grape grass gravity great green grid grief grit grocery group grow grunt guard guess guide guilt guitar gun gym habit hair half hammer hamster hand happy harbor hard harsh harvest hat have hawk hazard head health heart heavy hedgehog height hello helmet help hen hero hidden high hill hint hip hire history hobby hockey hold hole holiday hollow home honey hood hope horn horror horse hospital host hotel hour hover hub huge human humble humor hundred hungry hunt hurdle hurry hurt husband hybrid ice icon idea identify idle ignore ill illegal illness image imitate immense immune impact impose improve impulse inch include income increase index indicate indoor industry infant inflict inform inhale inherit initial inject injury inmate inner innocent input inquiry insane insect inside inspire install intact interest into invest invite involve iron island isolate issue item ivory jacket jaguar jar jazz jealous jeans jelly jewel job join joke journey joy judge juice jump jungle junior junk just kangaroo keen keep ketchup key kick kid kidney kind kingdom kiss kit kitchen kite kitten kiwi knee knife knock know lab label labor ladder lady lake lamp language laptop large later latin laugh laundry lava law lawn lawsuit layer lazy leader leaf learn leave lecture left leg legal legend leisure lemon lend length lens leopard lesson letter level liar liberty library license life lift light like limb limit link lion liquid list little live lizard load loan lobster local lock logic lonely long loop lottery loud lounge love loyal lucky luggage lumber lunar lunch luxury lyrics machine mad magic magnet maid mail main major make mammal man manage mandate mango mansion manual maple marble march margin marine market marriage mask mass master match material math matrix matter maximum maze meadow mean measure meat mechanic medal media melody melt member memory mention menu mercy merge merit merry mesh message metal method middle midnight milk million mimic mind minimum minor minute miracle mirror misery miss mistake mix mixed mixture mobile model modify mom moment monitor monkey monster month moon moral more morning mosquito mother motion motor mountain mouse move movie much muffin mule multiply muscle museum mushroom music must mutual myself mystery myth naive name napkin narrow nasty nation nature near neck need negative neglect neither nephew nerve nest net network neutral never news next nice night noble noise nominee noodle normal north nose notable note nothing notice novel now nuclear number nurse nut oak obey object oblige obscure observe obtain obvious occur ocean october odor off offer office often oil okay old olive olympic omit once one onion online only open opera opinion oppose option orange orbit orchard order ordinary organ orient original orphan ostrich other outdoor outer output outside oval oven over own owner oxygen oyster ozone pact paddle page pair palace palm panda panel panic panther paper parade parent park parrot party pass patch path patient patrol pattern pause pave payment peace peanut pear peasant pelican pen penalty pencil people pepper perfect permit person pet phone photo phrase physical piano picnic picture piece pig pigeon pill pilot pink pioneer pipe pistol pitch pizza place planet plastic plate play please pledge pluck plug plunge poem poet point polar pole police pond pony pool popular portion position possible post potato pottery poverty powder power practice praise predict prefer prepare present pretty prevent price pride primary print priority prison private prize problem process produce profit program project promote proof property prosper protect proud provide public pudding pull pulp pulse pumpkin punch pupil puppy purchase purity purpose purse push put puzzle pyramid quality quantum quarter question quick quit quiz quote rabbit raccoon race rack radar radio rail rain raise rally ramp ranch random range rapid rare rate rather raven raw razor ready real reason rebel rebuild recall receive recipe record recycle reduce reflect reform refuse region regret regular reject relax release relief rely remain remember remind remove render renew rent reopen repair repeat replace report require rescue resemble resist resource response result retire retreat return reunion reveal review reward rhythm rib ribbon rice rich ride ridge rifle right rigid ring riot ripple risk ritual rival river road roast robot robust rocket romance roof rookie room rose rotate rough round route royal rubber rude rug rule run runway rural sad saddle sadness safe sail salad salmon salon salt salute same sample sand satisfy satoshi sauce sausage save say scale scan scare scatter scene scheme school science scissors scorpion scout scrap screen script scrub sea search season seat second secret section security seed seek segment select sell seminar senior sense sentence series service session settle setup seven shadow shaft shallow share shed shell sheriff shield shift shine ship shiver shock shoe shoot shop short shoulder shove shrimp shrug shuffle shy sibling sick side siege sight sign silent silk silly silver similar simple since sing siren sister situate six size skate sketch ski skill skin skirt skull slab slam sleep slender slice slide slight slim slogan slot slow slush small smart smile smoke smooth snack snake snap sniff snow soap soccer social sock soda soft solar soldier solid solution solve someone song soon sorry sort soul sound soup source south space spare spatial spawn speak special speed spell spend sphere spice spider spike spin spirit split spoil sponsor spoon sport spot spray spread spring spy square squeeze squirrel stable stadium staff stage stairs stamp stand start state stay steak steel stem step stereo stick still sting stock stomach stone stool story stove strategy street strike strong struggle student stuff stumble style subject submit subway success such sudden suffer sugar suggest suit summer sun sunny sunset super supply supreme sure surface surge surprise surround survey suspect sustain swallow swamp swap swarm swear sweet swift swim swing switch sword symbol symptom syrup system table tackle tag tail talent talk tank tape target task taste tattoo taxi teach team tell ten tenant tennis tent term test text thank that theme then theory there they thing this thought three thrive throw thumb thunder ticket tide tiger tilt timber time tiny tip tired tissue title toast tobacco today toddler toe together toilet token tomato tomorrow tone tongue tonight tool tooth top topic topple torch tornado tortoise toss total tourist toward tower town toy track trade traffic tragic train transfer trap trash travel tray treat tree trend trial tribe trick trigger trim trip trophy trouble truck true truly trumpet trust truth try tube tuition tumble tuna tunnel turkey turn turtle twelve twenty twice twin twist two type typical ugly umbrella unable unaware uncle uncover under undo unfair unfold unhappy uniform unique unit universe unknown unlock until unusual unveil update upgrade uphold upon upper upset urban urge usage use used useful useless usual utility vacant vacuum vague valid valley valve van vanish vapor various vast vault vehicle velvet vendor venture venue verb verify version very vessel veteran viable vibrant vicious victory video view village vintage violin virtual virus visa visit visual vital vivid vocal voice void volcano volume vote voyage wage wagon wait walk wall walnut want warfare warm warrior wash wasp waste water wave way wealth weapon wear weasel weather web wedding weekend weird welcome west wet whale what wheat wheel when where whip whisper wide width wife wild will win window wine wing wink winner winter wire wisdom wise wish witness wolf woman wonder wood wool word work world worry worth wrap wreck wrestle wrist write wrong yard year yellow you young youth zebra zero zone zoo";
+    const bip39 = bip39_string.split(" ");
+
+    // --- FUNÇÕES DE CONVERSÃO BIP39 <-> BIN/NUM ---
+
+    // Palavras -> Binário (11 bits por palavra)
+    function wordsToBinary(words) {
+        return words.map(w => {
+            let idx = bip39.indexOf(w.toLowerCase());
+            if(idx === -1) throw new Error(`Palavra inválida: ${w}`);
+            return idx.toString(2).padStart(11, '0');
+        }).join('');
+    }
+
+    // Binário -> Palavras
+    function binaryToWords(bin) {
+        let words = [];
+        for(let i=0; i < bin.length; i+=11) {
+            let chunk = bin.substring(i, i+11);
+            words.push(bip39[parseInt(chunk, 2)]);
+        }
+        return words;
+    }
+
+    // Binário -> BigInt Numérico
+    function binaryToNum(bin) {
+        return BigInt("0b" + bin).toString(10);
+    }
+
+    // BigInt Numérico -> Binário (precisa saber o tamanho em bits, ex: 132 ou 264)
+    function numToBinary(numStr, bitsCount) {
+        let bin = BigInt(numStr).toString(2);
+        return bin.padStart(bitsCount, '0');
+    }
+
+    // --- FUNÇÕES DO PUZZLE (EMBARALHAMENTO E SEED) ---
+
+    // PRNG simples
+    function mulberry32(a) {
+        return function() {
+          var t = a += 0x6D2B79F5;
+          t = Math.imul(t ^ t >>> 15, t | 1);
+          t ^= t + Math.imul(t ^ t >>> 7, t | 61);
+          return ((t ^ t >>> 14) >>> 0) / 4294967296;
+        }
+    }
+
+    // Fisher-Yates determinístico
+    function getPermutation(n, seed) {
+        let prng = mulberry32(seed);
+        let arr = Array.from({length: n}, (_, i) => i);
+        for (let i = n - 1; i > 0; i--) {
+            let j = Math.floor(prng() * (i + 1));
+            let temp = arr[i];
+            arr[i] = arr[j];
+            arr[j] = temp;
+        }
+        return arr;
+    }
+
+    // Seed Numérica -> 3 Palavras
+    function seedToWords(num) {
+        let w1 = num % 2048; num = Math.floor(num / 2048);
+        let w2 = num % 2048; num = Math.floor(num / 2048);
+        let w3 = num % 2048;
+        return `${bip39[w1]} ${bip39[w2]} ${bip39[w3]}`;
+    }
+
+    // 3 Palavras -> Seed Numérica
+    function wordsToSeed(wordsStr) {
+        let w = wordsStr.trim().split(/\s+/);
+        if (w.length !== 3) throw new Error("Chave deve ter 3 palavras.");
+        let i1 = bip39.indexOf(w[0].toLowerCase());
+        let i2 = bip39.indexOf(w[1].toLowerCase());
+        let i3 = bip39.indexOf(w[2].toLowerCase());
+        if (i1 === -1 || i2 === -1 || i3 === -1) throw new Error("Palavra de chave inválida.");
+        return i1 + (i2 * 2048) + (i3 * 4194304);
+    }
+
+    // --- INTERAÇÕES DA INTERFACE ---
+
+    let currentInputWords = [];
+
+    function processOriginal() {
+        try {
+            let input = document.getElementById('inputWords').value.trim().split(/\s+/);
+            if(input.length < 12) throw new Error("Insira pelo menos 12 palavras.");
+            
+            currentInputWords = input;
+            let bin = wordsToBinary(input);
+            let num = binaryToNum(bin);
+
+            document.getElementById('origBin').innerText = bin;
+            document.getElementById('origNum').innerText = num;
+            document.getElementById('originalOutputs').style.display = 'block';
+            document.getElementById('scrambleOutputs').style.display = 'none';
+        } catch(e) {
+            alert(e.message);
+        }
+    }
+
+    function scramble() {
+        if(currentInputWords.length < 12) {
+            alert("Por favor, analise a carteira original primeiro.");
+            return;
+        }
+
+        // Gera seed de 32 bits
+        let seed = Math.floor(Math.random() * 0xFFFFFFFF);
+        let p = getPermutation(currentInputWords.length, seed);
+        
+        let scrambled = new Array(currentInputWords.length);
+        for(let i = 0; i < currentInputWords.length; i++) {
+            scrambled[i] = currentInputWords[p[i]];
+        }
+
+        // Output da Carteira Embaralhada
+        let sBin = wordsToBinary(scrambled);
+        document.getElementById('scrambledWords').innerText = scrambled.join(" ");
+        document.getElementById('scrambledBin').innerText = sBin;
+        document.getElementById('scrambledNum').innerText = binaryToNum(sBin);
+
+        // Output da Chave
+        document.getElementById('keyNum').innerText = seed.toString();
+        document.getElementById('keyBin').innerText = seed.toString(2).padStart(32, '0');
+        document.getElementById('keyWords').innerText = seedToWords(seed);
+
+        document.getElementById('scrambleOutputs').style.display = 'block';
+    }
+
+    function descramble() {
+        let dataInput = document.getElementById('recoverData').value.trim();
+        let keyInput = document.getElementById('recoverKey').value.trim();
+
+        if(!dataInput || !keyInput) {
+            alert("Preencha os dados e a chave de recuperação.");
+            return;
+        }
+
+        try {
+            // 1. Interpretar os DADOS DA CARTEIRA
+            let walletWords = [];
+            if(dataInput.match(/^[01]+$/) && dataInput.length >= 132) {
+                // É binário puro
+                walletWords = binaryToWords(dataInput);
+            } else if(dataInput.match(/^\d+$/)) {
+                // É número gigante (BigInt)
+                // Precisamos deduzir se era 12 ou 24 palavras arredondando para cima
+                let tempBin = BigInt(dataInput).toString(2);
+                let wordCount = Math.max(12, Math.ceil(tempBin.length / 11));
+                if (wordCount > 12 && wordCount <= 15) wordCount = 15;
+                else if (wordCount > 15 && wordCount <= 18) wordCount = 18;
+                else if (wordCount > 18 && wordCount <= 21) wordCount = 21;
+                else if (wordCount > 21) wordCount = 24;
+                
+                let bitsCount = wordCount * 11;
+                let fullBin = numToBinary(dataInput, bitsCount);
+                walletWords = binaryToWords(fullBin);
+            } else {
+                // Assume que são palavras com espaços
+                walletWords = dataInput.split(/\s+/);
+            }
+
+            // 2. Interpretar a CHAVE
+            let seed = 0;
+            if (keyInput.match(/^[01]{1,32}$/)) {
+                seed = parseInt(keyInput, 2);
+            } else if (keyInput.match(/^\d+$/)) {
+                seed = parseInt(keyInput, 10);
+            } else if (keyInput.includes(" ") && keyInput.split(/\s+/).length === 3) {
+                seed = wordsToSeed(keyInput);
+            } else {
+                throw new Error("Formato da chave não reconhecido.");
+            }
+
+            // 3. Desembaralhar
+            let p = getPermutation(walletWords.length, seed);
+            let original = new Array(walletWords.length);
+            for(let i = 0; i < p.length; i++) {
+                original[p[i]] = walletWords[i]; // Inversão do Fisher-Yates
+            }
+
+            document.getElementById('restoredWords').innerText = original.join(" ");
+            document.getElementById('recoverOutputs').style.display = 'block';
+
+        } catch(e) {
+            alert("Erro ao recuperar: " + e.message);
+        }
+    }
+</script>
+</body>
+</html>
