@@ -55,3 +55,6 @@ Quando você precisar acessar suas criptomoedas novamente e quiser descobrir a o
 * **Use Offline:** Para segurança máxima, abra este arquivo HTML em um computador que esteja desconectado da internet no momento de gerar ou recuperar sua carteira.
 * **Não salve em Nuvem:** Evite tirar fotos ou salvar os códigos no Google Drive, iCloud ou WhatsApp. Anote no papel ou grave em metal.
 * **Faça um teste:** Antes de transferir dinheiro para essa carteira, faça o processo inteiro (gere o puzzle, anote os códigos, feche o navegador, abra de novo e tente recuperar). Tenha certeza de que entendeu como funciona!
+
+* Abrir no browser sem download:
+https://htmlpreview.github.io/?https://github.com/guile84/cripto_way/blob/main/BIP39_Encoder_Cipher_Puzzle
